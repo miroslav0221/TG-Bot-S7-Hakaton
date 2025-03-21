@@ -8,7 +8,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
-
+    String message_start = "✨ Привет! Я — бот-помощник твоим удобным перелетам ✈\uFE0F  \n" +
+            "\uD83E\uDD16 Я покажу загруженность стоек регистрации в твоем аэропорту \uD83E\uDD16  \n" +
+            "\n" +
+            "\uD83D\uDDFA Из какого ты города? \uD83C\uDF0D\n";
     private final String botUsername = "S7_Helper_bot"; // Замени на свой username
     private final String botToken = "7581177756:AAEi6wClmr8O9oHHRUutllGyQZEb60qUWjw"; // Вставь токен от BotFather
 
@@ -23,13 +26,13 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
 
-
-
+    // Тестовый текст
     @Override
     public void onUpdateReceived(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        if (update.hasMessage() && update.getMessage().hasText()
+                && update.getMessage().getText().equals("/help")) {
             long chatId = update.getMessage().getChatId();
-            sendMessage(chatId, "Привет!");
+            sendMessage(chatId, message_start);
         }
     }
 
