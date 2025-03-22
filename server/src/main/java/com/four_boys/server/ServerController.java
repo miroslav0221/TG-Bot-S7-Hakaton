@@ -2,31 +2,55 @@ package com.four_boys.server;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+class Airport {
+    public String nameAirport;
+    public Map<String, String> reseption = new HashMap<>();
+    public Airport(String nameAirport, Map<String, String> reseption) {
+        this.nameAirport = nameAirport;
+        this.reseption = reseption;
+    }
+    public String getNameAirport() {
+        return nameAirport;
+    }
+    public Map<String, String> getReseption() {
+        return reseption;
+    }
+}
+
 @RestController
 public class ServerController {
-    private final Map<Integer, Integer> dataStore = new ConcurrentHashMap<>();
-
+    private final Map<String, Airport> data = new HashMap<>();
     @PostMapping("/update")
-    public String updateData(@RequestBody Map<String, Integer> payload) {
-
-        /// __________________________________________________________
-        /// Нужно согласовать с отправителем json, как называются поля
-        /// __________________________________________________________
-        Integer number_register_desk = payload.get("номер_стойки");
-        Integer count_people = payload.get("количество_человек");
-
-        if (number_register_desk != null && count_people != null) {
-            dataStore.put(number_register_desk, count_people);
-            return "Data updated for стойка " + number_register_desk;
+    public String updateData(@RequestBody Map<String, Map<String, String>> payload) {
+        if (payload == null || payload.isEmpty()) {
+            return "Payload is empty";
         }
-        return "Invalid data";
+        data.clear();
+        for (Map.Entry<String, Map<String, String>> entry : payload.entrySet()) {
+            String airportName = entry.getKey();
+            Map<String, String> receptionData = entry.getValue();
+            Airport airport = new Airport(airportName, receptionData);
+            data.put(airportName, airport);
+        }
+        for (Map.Entry<String, Airport> entry : data.entrySet()) {
+            String airportName = entry.getKey();
+            Airport airport = entry.getValue();
+            System.out.println("Аэропорт: " + airportName);
+            for (Map.Entry<String, String> receptionEntry : airport.getReseption().entrySet()) {
+                System.out.println("  Стойка " + receptionEntry.getKey() + ": " + receptionEntry.getValue() + " человек");
+            }
+        }
+        return "Data updated successfully";
     }
 
-    @GetMapping("/get")
-    public Map<Integer, Integer> getData() {
-        return dataStore;
+    @GetMapping("/data")
+    public Map<String, String> getData(@RequestParam String airport) {
+        return data.get(airport).getReseption();
     }
 }

@@ -21,10 +21,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final List<String> cities = Arrays.asList("Новосибирск", "Москва", "Санкт-Петербург", "Казань");
     private final Map<String, List<String>> airports = new HashMap<>();
     {
-        airports.put("Новосибирск", new ArrayList<>(List.of("Толмочево")));
+        airports.put("Новосибирск", new ArrayList<>(List.of("Толмачево")));
         airports.put("Москва", new ArrayList<>(List.of("Домодедово", "Внуково", "Шереметьево")));
         airports.put("Санкт-Петербург", new ArrayList<>(List.of("Пулково")));
-        airports.put("Казань", new ArrayList<>(List.of("Казань имени Габдуллы Тукая")));
+        airports.put("Казань", new ArrayList<>(List.of("Казань")));
     }
     private final String botUsername = "S7_Helper_bot";
     private final String botToken = "7581177756:AAEi6wClmr8O9oHHRUutllGyQZEb60qUWjw";
@@ -42,9 +42,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     private boolean isAirport(String airport) {
         return airports.values().stream().anyMatch(airportList->airportList.contains(airport));
     }
-
+    String nameOfAirport = " ";
     @Override
     public void onUpdateReceived(Update update) {
+        Receiver receiver = new Receiver();
+        Map<String, String> data = new HashMap<>();
         if (update.hasMessage() && update.getMessage().hasText()) {
             String receivedText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
@@ -56,8 +58,21 @@ public class TelegramBot extends TelegramLongPollingBot {
                 List<String> airportList = airports.get(receivedText);
                 sendMessageWithButtons(chatId, "Какой аэропорт вас интересует?",  airportList);
             } else if(isAirport(receivedText)) {
+                nameOfAirport = receivedText;
                 List<String> queue = List.of("Показать информацию об очереди в этом аэропорте");
                 sendMessageWithButtons(chatId, "Вы выбрали аэропорт: " + receivedText + " ✅", queue);
+                System.out.println(nameOfAirport);
+            } else if (receivedText.equals("Показать информацию об очереди в этом аэропорте")) {
+                System.out.println(nameOfAirport);
+                data = receiver.getData(nameOfAirport);
+                StringBuilder message = new StringBuilder();
+                for (Map.Entry<String, String> entry : data.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    System.out.println(key + " : " + value);
+                    message.append(key + " Стойка : " + value + " человек\n");
+                }
+                sendMessage(chatId, message.toString());
             }
         }
     }
