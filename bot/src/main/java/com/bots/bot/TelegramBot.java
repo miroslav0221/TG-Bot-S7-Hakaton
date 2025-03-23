@@ -18,13 +18,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             "\n" +
             "\uD83D\uDDFA Из какого ты города? \uD83C\uDF0D\n";
 
-    private final List<String> cities = Arrays.asList("Новосибирск", "Москва", "Санкт-Петербург", "Казань");
+    private final List<String> cities = Arrays.asList("Новосибирск");
     private final Map<String, List<String>> airports = new HashMap<>();
     {
         airports.put("Новосибирск", new ArrayList<>(List.of("Толмачево")));
-        airports.put("Москва", new ArrayList<>(List.of("Домодедово", "Внуково", "Шереметьево")));
-        airports.put("Санкт-Петербург", new ArrayList<>(List.of("Пулково")));
-        airports.put("Казань", new ArrayList<>(List.of("Казань")));
+//        airports.put("Москва", new ArrayList<>(List.of("Домодедово", "Внуково", "Шереметьево")));
+//        airports.put("Санкт-Петербург", new ArrayList<>(List.of("Пулково")));
+//        airports.put("Казань", new ArrayList<>(List.of("Казань")));
     }
     private final String botUsername = "S7_Helper_bot";
     private final String botToken = "7581177756:AAEi6wClmr8O9oHHRUutllGyQZEb60qUWjw";
@@ -47,22 +47,27 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         Receiver receiver = new Receiver();
         Map<String, String> data = new HashMap<>();
+        List<String> button;
         if (update.hasMessage() && update.getMessage().hasText()) {
             String receivedText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
             if (receivedText.equals("/start")) {
                 sendMessageWithButtons(chatId, message_start, cities);
-            } else if (cities.contains(receivedText)) {
+            } else if(receivedText.equals("Выход")) {
+                sendMessageWithButtons(chatId, "Из какого ты города?", cities);
+            }else if (cities.contains(receivedText)) {
                 sendMessage(chatId, "Вы выбрали город: " + receivedText + " ✅");
-                List<String> airportList = airports.get(receivedText);
+                List<String> airportList = new ArrayList<String>(airports.get(receivedText));
+                airportList.add("Выход");
                 sendMessageWithButtons(chatId, "Какой аэропорт вас интересует?",  airportList);
             } else if(isAirport(receivedText)) {
                 nameOfAirport = receivedText;
-                List<String> queue = List.of("Показать информацию об очереди в этом аэропорте");
-                sendMessageWithButtons(chatId, "Вы выбрали аэропорт: " + receivedText + " ✅", queue);
+                button = new ArrayList<>(List.of("Показать информацию об очереди в этом аэропорте"));
+                button.add("Выход");
+                sendMessageWithButtons(chatId, "Вы выбрали аэропорт: " + receivedText + " ✅", button);
                 System.out.println(nameOfAirport);
-            } else if (receivedText.equals("Показать информацию об очереди в этом аэропорте")) {
+            } else if (receivedText.equals("Показать информацию об очереди в этом аэропорте") || receivedText.equals("Обновить")) {
                 System.out.println(nameOfAirport);
                 data = receiver.getData(nameOfAirport);
                 StringBuilder message = new StringBuilder();
@@ -72,7 +77,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     System.out.println(key + " : " + value);
                     message.append(key + " Стойка : " + value + " человек\n");
                 }
-                sendMessage(chatId, message.toString());
+                button = new ArrayList<>(List.of("Обновить"));
+                button.add("Выход");
+                sendMessageWithButtons(chatId, message.toString(), button);
             }
         }
     }
