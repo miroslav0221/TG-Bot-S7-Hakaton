@@ -22,9 +22,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final Map<String, List<String>> airports = new HashMap<>();
     {
         airports.put("Новосибирск", new ArrayList<>(List.of("Толмачево")));
-//        airports.put("Москва", new ArrayList<>(List.of("Домодедово", "Внуково", "Шереметьево")));
-//        airports.put("Санкт-Петербург", new ArrayList<>(List.of("Пулково")));
-//        airports.put("Казань", new ArrayList<>(List.of("Казань")));
     }
     private final String botUsername = "S7_Helper_bot";
     private final String botToken = "7581177756:AAEi6wClmr8O9oHHRUutllGyQZEb60qUWjw";
@@ -42,7 +39,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     private boolean isAirport(String airport) {
         return airports.values().stream().anyMatch(airportList->airportList.contains(airport));
     }
+
     String nameOfAirport = " ";
+
     @Override
     public void onUpdateReceived(Update update) {
         Receiver receiver = new Receiver();
@@ -54,28 +53,40 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (receivedText.equals("/start")) {
                 sendMessageWithButtons(chatId, message_start, cities);
-            } else if(receivedText.equals("Выход")) {
+            }
+            else if (receivedText.equals("/help")) {
+                sendMessage(chatId, "Введите /start для начала работы бота.");
+            }
+            else if(receivedText.equals("Выход")) {
                 sendMessageWithButtons(chatId, "Из какого ты города?", cities);
-            }else if (cities.contains(receivedText)) {
+            }
+            else if (cities.contains(receivedText)) {
                 sendMessage(chatId, "Вы выбрали город: " + receivedText + " ✅");
                 List<String> airportList = new ArrayList<String>(airports.get(receivedText));
                 airportList.add("Выход");
                 sendMessageWithButtons(chatId, "Какой аэропорт вас интересует?",  airportList);
-            } else if(isAirport(receivedText)) {
+            }
+            else if(isAirport(receivedText)) {
                 nameOfAirport = receivedText;
                 button = new ArrayList<>(List.of("Показать информацию об очереди в этом аэропорте"));
                 button.add("Выход");
                 sendMessageWithButtons(chatId, "Вы выбрали аэропорт: " + receivedText + " ✅", button);
                 System.out.println(nameOfAirport);
-            } else if (receivedText.equals("Показать информацию об очереди в этом аэропорте") || receivedText.equals("Обновить")) {
+            }
+            else if (receivedText.equals("Показать информацию об очереди в этом аэропорте") || receivedText.equals("Обновить")) {
                 System.out.println(nameOfAirport);
                 data = receiver.getData(nameOfAirport);
                 StringBuilder message = new StringBuilder();
                 for (Map.Entry<String, String> entry : data.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
-                    System.out.println(key + " : " + value);
-                    message.append(key + " Стойка : " + value + " человек\n");
+                    int num = Integer.parseInt(value);
+                    if (num < 5) {
+                        message.append(key + " Стойка : " + value + " человек\uD83D\uDFE9\n");
+                    }
+                    else {
+                        message.append(key + " Стойка : " + value + " человек\uD83D\uDFE5\n");
+                    }
                 }
                 button = new ArrayList<>(List.of("Обновить"));
                 button.add("Выход");
@@ -121,7 +132,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setText(text);
         try {
             execute(message);
-        } catch (TelegramApiException e) {
+        }
+        catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }

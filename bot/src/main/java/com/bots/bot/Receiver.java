@@ -13,7 +13,8 @@ public class Receiver {
         Map<String, String> data = new HashMap<>();
         try {
             data = restTemplate.getForObject(URL + "?airport={airport}", Map.class, airport);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error fetching data: " + e.getMessage());
         }
         return data;
